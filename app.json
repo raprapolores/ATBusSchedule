@@ -12,7 +12,10 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.reactatbusnative.app"
+      "bundleIdentifier": "com.reactatbusnative.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.reactatbusnative.app",
