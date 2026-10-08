@@ -19,7 +19,7 @@ export class APIError extends Error {
  * Call this in catch blocks to get full error details
  */
 export function logError(error: unknown, context: string): void {
-  console.error(`\n❌ ${context}`);
+  console.error(`\n${context}`);
   console.error('─'.repeat(50));
 
   if (error instanceof APIError) {
@@ -66,12 +66,12 @@ export async function safeFetch<T>(
   context?: string,
 ): Promise<T> {
   try {
-    console.log(`📡 API Request: ${options?.method || 'GET'} ${url}`);
+    console.log(`API Request: ${options?.method || 'GET'} ${url}`);
 
     const response = await fetch(url, options);
     const statusText = `${response.status} ${response.statusText}`;
 
-    console.log(`✅ API Response: ${statusText}`);
+    console.log(`API Response: ${statusText}`);
 
     if (!response.ok) {
       let errorData: any;
@@ -95,7 +95,7 @@ export async function safeFetch<T>(
     }
 
     const data = await response.json();
-    console.log(`📦 Response data:`, data);
+    console.log('Response data:', data);
     return data;
   } catch (error) {
     logError(error, context || 'API Call Failed');

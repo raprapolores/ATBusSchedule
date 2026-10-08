@@ -7,7 +7,7 @@ export default function AboutScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
           <View style={styles.logoBox}>
-            <Text style={styles.logo}>🚌</Text>
+            <Text style={styles.logo}>AT</Text>
           </View>
           <Text style={styles.appName}>AT Hop Bus</Text>
           <Text style={styles.version}>Version 1.0.0</Text>

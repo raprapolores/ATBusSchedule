@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { HomeStack } from './src/navigation/HomeStack';
 import { SettingsStack } from './src/navigation/SettingsStack';
@@ -7,18 +7,42 @@ import type { RootTabParamList } from './src/navigation/types';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
+const appTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: '#007AFF',
+    background: '#F2F2F7',
+    card: '#FFFFFF',
+    text: '#111827',
+    border: '#D1D5DB',
+    notification: '#FF3B30',
+  },
+};
+
 export default function App() {
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={appTheme}>
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: '#2563eb',
-          tabBarInactiveTintColor: '#94a3b8',
+          tabBarActiveTintColor: '#007AFF',
+          tabBarInactiveTintColor: '#8E8E93',
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: '600',
+          },
           tabBarStyle: {
-            borderTopWidth: 1,
-            borderTopColor: '#e2e8f0',
-            backgroundColor: '#ffffff',
+            backgroundColor: '#F9FAFB',
+            borderTopWidth: 0,
+            height: 78,
+            paddingBottom: 10,
+            paddingTop: 8,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.08,
+            shadowRadius: 10,
+            elevation: 10,
           },
         }}
       >
@@ -28,9 +52,6 @@ export default function App() {
           options={{
             title: 'Timetable',
             tabBarLabel: 'Timetable',
-            tabBarIcon: ({ color, size }) => (
-              <Text style={{ fontSize: size, color }}>🚌</Text>
-            ),
           }}
         />
         <Tab.Screen
@@ -39,14 +60,9 @@ export default function App() {
           options={{
             title: 'Settings',
             tabBarLabel: 'Settings',
-            tabBarIcon: ({ color, size }) => (
-              <Text style={{ fontSize: size, color }}>⚙️</Text>
-            ),
           }}
         />
       </Tab.Navigator>
     </NavigationContainer>
   );
 }
-
-import { Text } from 'react-native';

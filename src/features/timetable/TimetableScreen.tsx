@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Modal,
   Pressable,
   ScrollView,
   StatusBar,
@@ -287,6 +288,44 @@ export default function TimetableScreen({ navigation }: Props) {
 
   const nextDeparture = rowsToDisplay[0]?.find((time) => !!time) || '—';
 
+  const activePicker = showRegionDropdown
+    ? {
+        title: 'Select region',
+        items: regions as any[],
+        keyExtractor: (region: any) => region.RegionId,
+        label: (region: any) => region.Name,
+        isSelected: (region: any) => region.RegionId === selectedRegionId,
+        onSelect: (region: any) => setSelectedRegionId(region.RegionId),
+      }
+    : showRouteDropdown
+      ? {
+          title: 'Select route',
+          items: routes as any[],
+          keyExtractor: (route: any) => route.RouteId,
+          label: (route: any) => route.Name,
+          isSelected: (route: any) => route.RouteId === selectedRouteId,
+          onSelect: (route: any) => setSelectedRouteId(route.RouteId),
+        }
+      : showDayDropdown
+        ? {
+            title: 'Select day',
+            items: dayOptions as any[],
+            keyExtractor: (day: any) => day.value,
+            label: (day: any) => day.label,
+            isSelected: (day: any) => day.value === selectedDayName,
+            onSelect: (day: any) => setSelectedDay(day.value),
+          }
+        : showStopDropdown
+          ? {
+              title: 'Select stop',
+              items: [{ StopId: '', Suburb: 'All stops' }, ...stops] as any[],
+              keyExtractor: (stop: any) => stop.StopId || 'all-stops',
+              label: (stop: any) => stop.Suburb,
+              isSelected: (stop: any) => stop.StopId === selectedStopId,
+              onSelect: (stop: any) => setSelectedStopId(stop.StopId),
+            }
+          : null;
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" />
@@ -446,36 +485,7 @@ export default function TimetableScreen({ navigation }: Props) {
                       )} */}
                     </View>
                     
-                    {/* Dropdown menu */}
-                    {showRegionDropdown && regions.length > 0 && (
-                      <View style={styles.dropdownMenu}>
-                        {regions.map((region) => (
-                          <Pressable
-                            key={region.RegionId}
-                            style={[
-                              styles.dropdownItem,
-                              region.RegionId === selectedRegionId && styles.dropdownItemSelected,
-                            ]}
-                            onPress={() => {
-                              setSelectedRegionId(region.RegionId);
-                              closeAllDropdowns();
-                            }}
-                          >
-                            <Text
-                              style={[
-                                styles.dropdownItemText,
-                                region.RegionId === selectedRegionId && styles.dropdownItemTextSelected,
-                              ]}
-                            >
-                              {region.Name}
-                            </Text>
-                            {/* {region.RegionId === selectedRegionId && (
-                              <Ionicons name="check" size={18} color="#2563eb" />
-                            )} */}
-                          </Pressable>
-                        ))}
-                      </View>
-                    )}
+                    {/* Native sheet handled below */}
                   </View>
                 )}
               </View>
@@ -513,38 +523,7 @@ export default function TimetableScreen({ navigation }: Props) {
                     </View>
                     
                     {/* Dropdown menu */}
-                    {showRouteDropdown && routes.length > 0 && (
-                      <View style={styles.dropdownMenu}>
-                        {routes.map((route) => (
-                          <Pressable
-                            key={route.RouteId}
-                            style={[
-                              styles.dropdownItem,
-                              route.RouteId === selectedRouteId && styles.dropdownItemSelected,
-                            ]}
-                            onPress={() => {
-                              setSelectedRouteId(route.RouteId);
-                              closeAllDropdowns();
-                            }}
-                          >
-                            <View style={styles.routeItemContent}>
-                              <Text
-                                style={[
-                                  styles.dropdownItemText,
-                                  route.RouteId === selectedRouteId && styles.dropdownItemTextSelected,
-                                ]}
-                              >
-                                {route.Name}
-                              </Text>
-                              <Text style={styles.routeCode}>{route.Code}</Text>
-                            </View>
-                            {/* {route.RouteId === selectedRouteId && (
-                              <Ionicons name="check" size={18} color="#2563eb" />
-                            )} */}
-                          </Pressable>
-                        ))}
-                      </View>
-                    )}
+                    {false && null}
                   </View>
                 )}
               </View>
@@ -582,33 +561,7 @@ export default function TimetableScreen({ navigation }: Props) {
                       )} */}
                     </View>
 
-                    {showDayDropdown && (
-                      <ScrollView style={styles.dropdownMenu} scrollEnabled nestedScrollEnabled>
-                        {dayOptions.map((day) => (
-                          <Pressable
-                            key={day.value}
-                            style={[
-                              styles.dropdownItem,
-                              day.value === selectedDayName && styles.dropdownItemSelected,
-                            ]}
-                            onPress={() => {
-                              setSelectedDay(day.value);
-                              closeAllDropdowns();
-                            }}
-                          >
-                            <Text
-                              style={[
-                                styles.dropdownItemText,
-                                day.value === selectedDayName && styles.dropdownItemTextSelected,
-                              ]}
-                            >
-                              {day.label}
-                            </Text>
-                            {/* {day.value === selectedDayName && <Ionicons name="check" size={18} color="#2563eb" />} */}
-                          </Pressable>
-                        ))}
-                      </ScrollView>
-                    )}
+                    {false && null}
                   </View>
                 )}
               </View>
@@ -646,54 +599,7 @@ export default function TimetableScreen({ navigation }: Props) {
                       )} */}
                     </View>
 
-                    {!liveTimetable && showStopDropdown && stops.length > 0 && (
-                      <View style={styles.dropdownMenu}>
-                        <Pressable
-                          style={[
-                            styles.dropdownItem,
-                            !selectedStopId && styles.dropdownItemSelected,
-                          ]}
-                          onPress={() => {
-                            setSelectedStopId('');
-                            setShowStopDropdown(false);
-                          }}
-                        >
-                          <Text
-                            style={[
-                              styles.dropdownItemText,
-                              !selectedStopId && styles.dropdownItemTextSelected,
-                            ]}
-                          >
-                            All stops
-                          </Text>
-                          {/* {!selectedStopId && <Ionicons name="check" size={18} color="#2563eb" />} */}
-                        </Pressable>
-
-                        {stops.map((stop) => (
-                          <Pressable
-                            key={stop.StopId}
-                            style={[
-                              styles.dropdownItem,
-                              stop.StopId === selectedStopId && styles.dropdownItemSelected,
-                            ]}
-                            onPress={() => {
-                              setSelectedStopId(stop.StopId);
-                              closeAllDropdowns();
-                            }}
-                          >
-                            <Text
-                              style={[
-                                styles.dropdownItemText,
-                                stop.StopId === selectedStopId && styles.dropdownItemTextSelected,
-                              ]}
-                            >
-                              {stop.Suburb}
-                            </Text>
-                            {/* {stop.StopId === selectedStopId && <Ionicons name="check" size={18} color="#2563eb" />} */}
-                          </Pressable>
-                        ))}
-                      </View>
-                    )}
+                    {false && null}
                   </View>
                 )}
               </View>
@@ -772,6 +678,44 @@ export default function TimetableScreen({ navigation }: Props) {
           </View>
         </View>
       </ScrollView>
+
+      <Modal
+        transparent
+        visible={!!activePicker}
+        animationType="slide"
+        onRequestClose={closeAllDropdowns}
+      >
+        <Pressable style={styles.sheetBackdrop} onPress={closeAllDropdowns} />
+        <View style={styles.sheetContainer}>
+          <View style={styles.sheetHandle} />
+          <Text style={styles.sheetTitle}>{activePicker?.title}</Text>
+
+          <ScrollView style={styles.sheetList} contentContainerStyle={styles.sheetListContent}>
+            {activePicker?.items.map((item) => (
+              <Pressable
+                key={activePicker.keyExtractor(item)}
+                style={[
+                  styles.sheetItem,
+                  activePicker.isSelected(item) && styles.sheetItemSelected,
+                ]}
+                onPress={() => {
+                  activePicker.onSelect(item);
+                  closeAllDropdowns();
+                }}
+              >
+                <Text
+                  style={[
+                    styles.sheetItemText,
+                    activePicker.isSelected(item) && styles.sheetItemTextSelected,
+                  ]}
+                >
+                  {activePicker.label(item)}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -779,37 +723,31 @@ export default function TimetableScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#eef4ff',
+    backgroundColor: '#F2F2F7',
   },
   container: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 12,
     paddingBottom: 32,
     gap: 12,
   },
   mediaStrip: {
-    flexDirection: 'row',
-    gap: 12,
     minHeight: 0,
   },
   panel: {
     flex: 1,
-    minHeight: 600,
-    backgroundColor: '#ffffff',
-    borderRadius: 28,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: '#dfe9ff',
-    shadowColor: '#0f172a',
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 4,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 0,
+    padding: 0,
+    borderWidth: 0,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 18,
+    marginBottom: 12,
   },
   titleWrap: {
     flex: 1,
@@ -817,8 +755,8 @@ const styles = StyleSheet.create({
   eyebrow: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#2563eb',
-    letterSpacing: 0.9,
+    color: '#007AFF',
+    letterSpacing: 0.8,
     textTransform: 'uppercase',
     marginBottom: 4,
   },
@@ -841,43 +779,43 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   liveBadgeActive: {
-    backgroundColor: '#dcfce7',
-    color: '#15803d',
+    backgroundColor: '#E8F8EE',
+    color: '#1F8F4D',
   },
   liveBadgeInactive: {
-    backgroundColor: '#e2e8f0',
-    color: '#475569',
+    backgroundColor: '#E5E7EB',
+    color: '#4B5563',
   },
   userRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 12,
-    marginBottom: 16,
+    gap: 8,
+    marginBottom: 14,
   },
   userCard: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    backgroundColor: '#f8fafc',
-    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#E5E5EA',
   },
   avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#2563eb',
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#007AFF',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
   },
   avatarText: {
-    color: '#fff',
-    fontSize: 14,
+    color: '#FFFFFF',
+    fontSize: 13,
     fontWeight: '700',
   },
   userMeta: {
@@ -890,74 +828,71 @@ const styles = StyleSheet.create({
   },
   userEmail: {
     fontSize: 11,
-    color: '#64748b',
+    color: '#6B7280',
     marginTop: 2,
   },
   pointsBadge: {
-    backgroundColor: '#fef3c7',
+    backgroundColor: '#FFF4D6',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 12,
-    minWidth: 74,
+    minWidth: 72,
     alignItems: 'center',
   },
   pointsText: {
-    color: '#92400e',
+    color: '#A65B00',
     fontWeight: '700',
     fontSize: 12,
   },
   buttonPrimary: {
-    backgroundColor: '#2563eb',
-    borderRadius: 14,
-    paddingHorizontal: 20,
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    paddingHorizontal: 18,
     paddingVertical: 12,
-    minWidth: 110,
+    minWidth: 100,
     alignItems: 'center',
   },
   buttonPrimaryText: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 13,
   },
   buttonSecondary: {
     borderWidth: 1,
-    borderColor: '#bfdbfe',
-    backgroundColor: '#eff6ff',
-    borderRadius: 14,
+    borderColor: '#C7D2FE',
+    backgroundColor: '#EFF6FF',
+    borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     minWidth: 92,
     alignItems: 'center',
   },
   buttonSecondaryText: {
-    color: '#1d4ed8',
+    color: '#1D4ED8',
     fontWeight: '700',
     fontSize: 13,
   },
   errorText: {
-    color: '#dc2626',
+    color: '#D93025',
     marginBottom: 12,
     fontSize: 13,
   },
   heroCard: {
-    backgroundColor: '#0f172a',
-    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
     padding: 16,
-    marginBottom: 14,
-    shadowColor: '#0f172a',
-    shadowOpacity: 0.16,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 5,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
   heroTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: 12,
   },
   heroLabel: {
-    color: '#93c5fd',
+    color: '#6B7280',
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.8,
@@ -965,19 +900,19 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   heroTitle: {
-    color: '#f8fafc',
-    fontSize: 24,
+    color: '#111827',
+    fontSize: 22,
     fontWeight: '800',
-    letterSpacing: -0.5,
+    letterSpacing: -0.4,
   },
   heroBadge: {
-    backgroundColor: '#1d4ed8',
+    backgroundColor: '#E8F1FF',
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
   heroBadgeText: {
-    color: '#eff6ff',
+    color: '#0F4CBA',
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.7,
@@ -990,13 +925,13 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   heroTime: {
-    color: '#e0f2fe',
-    fontSize: 36,
+    color: '#007AFF',
+    fontSize: 34,
     fontWeight: '800',
     letterSpacing: -1,
   },
   heroMeta: {
-    color: '#cbd5e1',
+    color: '#6B7280',
     fontSize: 12,
     fontWeight: '600',
     maxWidth: 120,
@@ -1007,7 +942,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   heroActionButtonPrimary: {
-    backgroundColor: '#2563eb',
+    backgroundColor: '#007AFF',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -1015,14 +950,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   heroActionButtonPrimaryText: {
-    color: '#ffffff',
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '700',
   },
   heroActionButtonSecondary: {
-    backgroundColor: '#1e293b',
+    backgroundColor: '#F3F4F6',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#E5E7EB',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -1030,32 +965,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   heroActionButtonSecondaryText: {
-    color: '#e2e8f0',
+    color: '#374151',
     fontSize: 13,
     fontWeight: '700',
   },
   summaryCard: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 18,
-    padding: 14,
-    marginBottom: 14,
+    borderColor: '#E5E5EA',
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 12,
   },
   summaryHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   sectionTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#0f172a',
+    color: '#111827',
   },
   summaryTime: {
     fontSize: 12,
-    color: '#475569',
+    color: '#6B7280',
     fontWeight: '600',
   },
   summaryGrid: {
@@ -1064,32 +999,32 @@ const styles = StyleSheet.create({
   },
   summaryItem: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#F9FAFB',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#E5E7EB',
     paddingHorizontal: 10,
     paddingVertical: 10,
   },
   summaryLabel: {
     fontSize: 10,
-    color: '#64748b',
+    color: '#6B7280',
     marginBottom: 4,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     fontWeight: '700',
   },
   summaryValue: {
-    color: '#0f172a',
+    color: '#111827',
     fontSize: 12,
     fontWeight: '700',
   },
   filtersCard: {
-    backgroundColor: '#f8fafc',
-    borderRadius: 18,
-    padding: 14,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#E5E5EA',
     marginBottom: 16,
     overflow: 'visible',
   },
@@ -1101,32 +1036,27 @@ const styles = StyleSheet.create({
   },
   modeToggle: {
     flexDirection: 'row',
-    backgroundColor: '#e2e8f0',
-    borderRadius: 12,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 10,
     padding: 4,
   },
   modeButton: {
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 10,
+    borderRadius: 8,
     minWidth: 68,
     alignItems: 'center',
   },
   modeButtonActive: {
-    backgroundColor: '#ffffff',
-    shadowColor: '#0f172a',
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    backgroundColor: '#FFFFFF',
   },
   modeButtonText: {
-    color: '#475569',
+    color: '#4B5563',
     fontSize: 12,
     fontWeight: '700',
   },
   modeButtonTextActive: {
-    color: '#1d4ed8',
+    color: '#007AFF',
   },
   filtersGrid: {
     flexDirection: 'column',
@@ -1135,7 +1065,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#475569',
+    color: '#4B5563',
     marginBottom: 6,
   },
   selectBlock: {
@@ -1146,31 +1076,30 @@ const styles = StyleSheet.create({
   },
   pickerBox: {
     borderWidth: 1,
-    borderColor: '#cbd5e1',
-    backgroundColor: '#fff',
+    borderColor: '#D1D5DB',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     minHeight: 44,
     paddingHorizontal: 12,
     justifyContent: 'center',
-    position: 'relative',
     width: '100%',
   },
   pickerBoxDisabled: {
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    backgroundColor: '#f8fafc',
+    borderColor: '#E5E7EB',
+    backgroundColor: '#F3F4F6',
     borderRadius: 12,
     minHeight: 44,
     paddingHorizontal: 12,
     justifyContent: 'center',
   },
   pickerText: {
-    color: '#0f172a',
+    color: '#111827',
     fontSize: 12,
     fontWeight: '600',
   },
   loadingBox: {
-    backgroundColor: '#e5e7eb',
+    backgroundColor: '#E5E7EB',
     borderRadius: 12,
     minHeight: 44,
   },
@@ -1190,44 +1119,91 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   clearButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#fee2e2',
+    width: 42,
+    height: 42,
+    borderRadius: 10,
+    backgroundColor: '#FEE2E2',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#fecaca',
+    borderColor: '#FECACA',
   },
   clearButtonText: {
     fontSize: 18,
-    color: '#dc2626',
+    color: '#DC2626',
     fontWeight: '700',
   },
-  dropdownArrow: {
-    position: 'absolute',
-    right: 12,
-    fontSize: 10,
-    color: '#94a3b8',
-    fontWeight: '600',
+  sheetBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(17, 24, 39, 0.35)',
+    justifyContent: 'flex-end',
   },
-  dropdownMenu: {
-    position: 'relative',
+  sheetContainer: {
+    position: 'absolute',
     left: 0,
     right: 0,
-    backgroundColor: '#fff',
+    bottom: 0,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 24,
+    maxHeight: '72%',
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: -6 },
+    elevation: 18,
+  },
+  sheetHandle: {
+    width: 42,
+    height: 5,
+    borderRadius: 999,
+    backgroundColor: '#D1D5DB',
+    alignSelf: 'center',
+    marginBottom: 12,
+  },
+  sheetTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 12,
+  },
+  sheetList: {
+    maxHeight: 420,
+  },
+  sheetListContent: {
+    paddingBottom: 8,
+  },
+  sheetItem: {
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    marginBottom: 6,
+    backgroundColor: '#F9FAFB',
+  },
+  sheetItemSelected: {
+    backgroundColor: '#E8F1FF',
+  },
+  sheetItemText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  sheetItemTextSelected: {
+    color: '#007AFF',
+    fontWeight: '700',
+  },
+  dropdownMenu: {
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#cbd5e1',
+    borderColor: '#D1D5DB',
     borderRadius: 12,
     marginTop: 6,
-    overflow: 'visible',
     maxHeight: 300,
+    overflow: 'hidden',
     zIndex: 1000,
-    shadowColor: '#0f172a',
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 5 },
-    elevation: 10,
   },
   dropdownItem: {
     flexDirection: 'row',
@@ -1236,24 +1212,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: '#F3F4F6',
   },
   dropdownItemSelected: {
-    backgroundColor: '#eff6ff',
+    backgroundColor: '#EFF6FF',
   },
   dropdownItemText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#0f172a',
+    color: '#111827',
     flex: 1,
   },
   dropdownItemTextSelected: {
-    color: '#1d4ed8',
+    color: '#007AFF',
     fontWeight: '700',
   },
   checkmark: {
     fontSize: 14,
-    color: '#2563eb',
+    color: '#007AFF',
     fontWeight: '700',
     marginLeft: 8,
   },
@@ -1262,22 +1238,22 @@ const styles = StyleSheet.create({
   },
   routeCode: {
     fontSize: 11,
-    color: '#94a3b8',
+    color: '#6B7280',
     marginTop: 2,
     fontWeight: '600',
   },
   timetableWrapper: {
     marginTop: 6,
-    backgroundColor: '#f8fafc',
-    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#E5E5EA',
     padding: 12,
   },
   tableTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#0f172a',
+    color: '#111827',
     textAlign: 'left',
     marginBottom: 12,
   },
@@ -1287,7 +1263,7 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     textAlign: 'center',
-    color: '#64748b',
+    color: '#6B7280',
     fontSize: 14,
     paddingVertical: 32,
   },
@@ -1299,7 +1275,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   paginationText: {
-    color: '#475569',
+    color: '#4B5563',
     fontSize: 12,
     fontWeight: '700',
   },
@@ -1308,7 +1284,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   pageButton: {
-    backgroundColor: '#e2e8f0',
+    backgroundColor: '#F3F4F6',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 10,
@@ -1319,27 +1295,22 @@ const styles = StyleSheet.create({
     opacity: 0.45,
   },
   pageButtonText: {
-    color: '#0f172a',
+    color: '#111827',
     fontSize: 12,
     fontWeight: '700',
   },
   pageButtonTextDisabled: {
-    color: '#475569',
+    color: '#4B5563',
   },
   departureList: {
     gap: 10,
   },
   departureCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#E5E5EA',
     borderRadius: 14,
     padding: 14,
-    shadowColor: '#0f172a',
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
   },
   departureCardHeader: {
     flexDirection: 'row',
@@ -1348,7 +1319,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: '#F3F4F6',
   },
   stopLabelWrap: {
     flex: 1,
@@ -1358,21 +1329,21 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.7,
-    color: '#64748b',
+    color: '#6B7280',
     textTransform: 'uppercase',
     marginBottom: 4,
   },
   departureTime: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#1d4ed8',
+    color: '#007AFF',
     letterSpacing: -0.4,
   },
   scheduleTag: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#475569',
-    backgroundColor: '#f1f5f9',
+    color: '#374151',
+    backgroundColor: '#F3F4F6',
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -1380,7 +1351,7 @@ const styles = StyleSheet.create({
   routeSummary: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#64748b',
+    color: '#6B7280',
     letterSpacing: 0.6,
     textTransform: 'uppercase',
     marginBottom: 8,
@@ -1391,10 +1362,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   timeChip: {
-    backgroundColor: '#eff6ff',
+    backgroundColor: '#E8F1FF',
     borderWidth: 1,
-    borderColor: '#bfdbfe',
-    color: '#1d4ed8',
+    borderColor: '#BFDBFE',
+    color: '#0057C9',
     fontSize: 12,
     fontWeight: '700',
     borderRadius: 999,
@@ -1403,7 +1374,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   emptyStateSmall: {
-    color: '#64748b',
+    color: '#6B7280',
     fontSize: 13,
     paddingVertical: 8,
   },

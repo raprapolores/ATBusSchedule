@@ -58,7 +58,7 @@ try {
 When an error happens, you'll see in the console:
 
 ```
-❌ Loading regions
+Loading regions
 ──────────────────────────────────────────────────
 Message: API call failed: Network error
 Status: 0
@@ -80,24 +80,24 @@ Edit `src/services/api.ts` to add more logging:
 ```typescript
 export async function fetchRegions(): Promise<Region[]> {
   try {
-    console.log('🔄 Fetching regions from:', API_BASE + '/regions');
+    console.log('Fetching regions from:', API_BASE + '/regions');
     
     const response = await fetch(`${API_BASE}/regions`);
     
-    console.log('📊 Response status:', response.status, response.statusText);
+    console.log('Response status:', response.status, response.statusText);
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Error response body:', errorText);
+      console.error('Error response body:', errorText);
       throw new Error(`Failed to fetch regions: ${response.status}`);
     }
     
     const data = await response.json();
-    console.log('✅ Regions loaded:', data);
+    console.log('Regions loaded:', data);
     
     return data;
   } catch (error) {
-    console.error('💥 fetchRegions error:', error);
+    console.error('fetchRegions error:', error);
     throw error;
   }
 }
@@ -222,7 +222,7 @@ export default function TimetableScreen({ navigation }: Props) {
         setError(null);  // Clear previous errors
         setLoadingRegions(true);
         
-        console.log('📍 Starting region fetch...');
+        console.log('Starting region fetch...');
         const data = await fetchRegions();
         
         if (!Array.isArray(data)) {
@@ -230,7 +230,7 @@ export default function TimetableScreen({ navigation }: Props) {
         }
         
         setRegions(data);
-        console.log(`✅ Loaded ${data.length} regions`);
+        console.log(`Loaded ${data.length} regions`);
         
       } catch (err) {
         // Log full error details to console
@@ -309,16 +309,16 @@ Add these logging patterns to help debug:
 
 ```typescript
 // Before API call
-console.log('🔄 REQUEST:', { url, method, headers, body });
+console.log('REQUEST:', { url, method, headers, body });
 
 // Success
-console.log('✅ SUCCESS:', { status, data });
+console.log('SUCCESS:', { status, data });
 
 // Error
-console.error('❌ ERROR:', { status, message, errorData });
+console.error('ERROR:', { status, message, errorData });
 
 // Data validation
-console.log('📊 DATA VALIDATION:', { 
+console.log('DATA VALIDATION:', { 
   expected: 'array', 
   received: typeof data,
   length: Array.isArray(data) ? data.length : 'N/A'
@@ -332,7 +332,7 @@ console.log('📊 DATA VALIDATION:', {
 When you encounter an API error:
 
 - [ ] Open the console (press `j` in Expo)
-- [ ] Look for error logs with ❌ or 💥 emojis
+- [ ] Look for error logs with clear error text
 - [ ] Check the **Status** code:
   - `0` = Network error
   - `4xx` = Client error (your request is wrong)

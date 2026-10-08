@@ -2,7 +2,7 @@
 
 This is a production-ready React Native + Expo project organized using **feature-based architecture**. Below is the complete folder structure with explanations for how each folder should grow and what belongs in each place.
 
-## 📁 Project Layout
+## Project Layout
 
 ```
 ReactATBusNative/
@@ -94,7 +94,7 @@ ReactATBusNative/
 
 ---
 
-## 🎯 Architecture Decisions
+## Architecture Decisions
 
 ### Why Feature-Based?
 
@@ -132,7 +132,7 @@ This pattern allows:
 
 ---
 
-## 📚 How Each Folder Should Grow
+## How Each Folder Should Grow
 
 ### `src/features/`
 
@@ -189,7 +189,7 @@ components/
 
 ---
 
-## 🔄 Navigation Flow Example
+## Navigation Flow Example
 
 ### Adding a New Feature
 
@@ -230,13 +230,13 @@ Let's say you want to add a "Favorites" feature:
    <Tab.Screen
      name="FavoritesTab"
      component={FavoritesStack}
-     options={{ title: 'Favorites', tabBarIcon: ({ color }) => '❤️' }}
+     options={{ title: 'Favorites' }}
    />
    ```
 
 ---
 
-## 📦 Key Packages & Their Purpose
+## Key Packages & Their Purpose
 
 | Package | Purpose |
 |---------|---------|
@@ -252,37 +252,37 @@ Let's say you want to add a "Favorites" feature:
 
 ---
 
-## 🚀 Best Practices Applied
+## Best Practices Applied
 
-✅ **Type Safety**
+**Type Safety**
 - Navigation routes are typed with `RootTabParamList`, `HomeStackParamList`, etc.
 - Screen components use `NativeStackScreenProps<ParamList, 'RouteName'>`
 - All props and params are type-checked
 
-✅ **Feature Isolation**
+**Feature Isolation**
 - Each feature owns its screens, components, and logic
 - Features can be developed independently
 - Easy to add/remove features without affecting others
 
-✅ **Navigation Configuration**
+**Navigation Configuration**
 - Route names centralized in `src/constants/navigation.ts`
 - Navigation type definitions in `src/navigation/types.ts`
 - Stack navigators separated into individual files
 
-✅ **Code Organization**
+**Code Organization**
 - API calls in `src/services/`
 - Reusable components in `src/components/`
 - Feature-specific logic in `src/features/*/`
 - Constants and types co-located with usage
 
-✅ **Scalability**
+**Scalability**
 - Structure supports adding new features easily
 - Room for growth: hooks, components, services
 - Modular design allows team collaboration
 
 ---
 
-## 🔍 Common Tasks
+## Common Tasks
 
 ### How to navigate between screens
 
@@ -321,7 +321,7 @@ export default function RouteDetailsScreen({ route, navigation }: Props) {
 
 ---
 
-## 📖 Learning Path
+## Learning Path
 
 If you're studying this codebase:
 
@@ -346,7 +346,7 @@ If you're studying this codebase:
 
 ---
 
-## 🛠️ Next Steps
+## Next Steps
 
 Recommended additions to make this production-ready:
 
@@ -363,7 +363,7 @@ Recommended additions to make this production-ready:
 
 ---
 
-## 📝 Notes
+## Notes
 
 - This structure follows React Native best practices and is similar to production apps in the App Store/Play Store.
 - TypeScript prevents many bugs at compile time — keep using it!

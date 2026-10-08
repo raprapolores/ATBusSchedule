@@ -66,36 +66,39 @@ function SettingsItem({ label, value, onPress }: SettingsItemProps) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#eef4ff',
+    backgroundColor: '#F2F2F7',
   },
   container: {
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
   header: {
-    marginBottom: 24,
+    marginBottom: 20,
     paddingTop: 8,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '800',
-    color: '#0f172a',
+    color: '#111827',
+    letterSpacing: -0.7,
   },
   section: {
-    marginBottom: 24,
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    marginBottom: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#E5E5EA',
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#64748b',
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#8E8E93',
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
   },
   item: {
     flexDirection: 'row',
@@ -104,7 +107,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
+    borderTopColor: '#F2F2F7',
   },
   itemContent: {
     flex: 1,
@@ -112,25 +115,25 @@ const styles = StyleSheet.create({
   itemLabel: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#0f172a',
+    color: '#111827',
     marginBottom: 2,
   },
   itemValue: {
     fontSize: 13,
-    color: '#64748b',
+    color: '#6B7280',
   },
   arrow: {
-    fontSize: 20,
-    color: '#cbd5e1',
+    fontSize: 22,
+    color: '#C7C7CC',
     marginLeft: 12,
   },
   footer: {
     alignItems: 'center',
-    marginTop: 32,
+    marginTop: 28,
     paddingBottom: 20,
   },
   version: {
     fontSize: 13,
-    color: '#94a3b8',
+    color: '#8E8E93',
   },
 });

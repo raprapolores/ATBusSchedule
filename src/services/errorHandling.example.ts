@@ -32,13 +32,13 @@ export async function fetchRegions_OLD(): Promise<Region[]> {
 export async function fetchRegions_IMPROVED(): Promise<Region[]> {
   try {
     // Log the request being made
-    console.log('🔄 API: GET /regions');
+    console.log('API: GET /regions');
     console.log('URL:', `${API_BASE}/regions`);
     
     const response = await fetch(`${API_BASE}/regions`);
     
     // Log the response status
-    console.log('📊 Response Status:', response.status, response.statusText);
+    console.log('Response Status:', response.status, response.statusText);
     
     if (!response.ok) {
       // Try to get error details from response body
@@ -55,7 +55,7 @@ export async function fetchRegions_IMPROVED(): Promise<Region[]> {
         console.log('Could not parse error response body');
       }
       
-      console.error('❌ API Error Response:', errorBody);
+      console.error('API Error Response:', errorBody);
       
       throw new APIError(
         `Failed to fetch regions: ${response.status} ${response.statusText}`,
@@ -71,7 +71,7 @@ export async function fetchRegions_IMPROVED(): Promise<Region[]> {
       throw new Error(`Expected array, got ${typeof data}`);
     }
     
-    console.log(`✅ Loaded ${data.length} regions:`, data);
+    console.log(`Loaded ${data.length} regions:`, data);
     return data;
     
   } catch (error) {
@@ -105,13 +105,13 @@ export function MyComponent() {
       setError(null);
       setLoading(true);
       
-      console.log('📍 Component: Starting data load');
+      console.log('Component: Starting data load');
       
       // Call API
       const result = await fetchRegions_IMPROVED();
       setData(result);
       
-      console.log('✅ Component: Data loaded successfully');
+      console.log('Component: Data loaded successfully');
       
     } catch (err) {
       // Log detailed error to console for debugging
@@ -163,7 +163,7 @@ export async function fetchRegions_TEST_ERROR(): Promise<Region[]> {
 /**
  * 2. Run the app: npm start
  * 3. Watch the console - you should see:
- *    ❌ fetchRegions
+ *    fetchRegions
  *    Message: Simulated error for testing
  *    ...
  * 4. The app UI should show the error message
@@ -180,7 +180,7 @@ export async function fetchRegions_TEST_ERROR(): Promise<Region[]> {
 
 // Network error (can't reach server)
 const EXAMPLE_1 = `
-❌ fetchRegions
+fetchRegions
 ──────────────────────────────────────────────────
 Message: API call failed: Failed to fetch
 Status: 0
@@ -192,7 +192,7 @@ Solution: Check internet connection, verify API URL
 
 // 404 Not Found (wrong endpoint)
 const EXAMPLE_2 = `
-❌ fetchRegions
+fetchRegions
 ──────────────────────────────────────────────────
 Message: Failed to fetch regions: 404 Not Found
 Status: 404
@@ -204,7 +204,7 @@ Solution: Check endpoint spelling in API_BASE + path
 
 // 500 Server Error (backend crashed)
 const EXAMPLE_3 = `
-❌ fetchRegions
+fetchRegions
 ──────────────────────────────────────────────────
 Message: Failed to fetch regions: 500 Internal Server Error
 Status: 500
@@ -216,7 +216,7 @@ Solution: Check backend logs, contact backend developer
 
 // Invalid JSON (server returned bad data)
 const EXAMPLE_4 = `
-❌ fetchRegions
+fetchRegions
 ──────────────────────────────────────────────────
 Message: Unexpected token < in JSON at position 0
 Status: undefined
@@ -269,7 +269,7 @@ Solution: Check server configuration, check endpoint
  *    import { logError, getErrorMessage } from './services/errorHandling';
  * 
  * 2. Add logging to API calls:
- *    console.log('🔄 API: GET /regions');
+ *    console.log('API: GET /regions');
  *    
  * 3. Wrap in try/catch:
  *    try {
