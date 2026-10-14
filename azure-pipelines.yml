@@ -16,6 +16,7 @@ steps:
   displayName: 'Use Node.js $(nodeVersion)'
 
 - script: npm ci
+  workingDirectory: '$(Build.SourcesDirectory)'
   displayName: 'Install dependencies'
 
 - task: JavaToolInstaller@0
