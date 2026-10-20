@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Feather } from '@expo/vector-icons';
 import {
   ActivityIndicator,
@@ -12,17 +12,14 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAuth } from './src/useAuth';
 import {
   dayMap,
   fetchRegions,
   fetchRoutes,
   fetchTimetables,
-  saveUserToBackend,
   type Region,
   type Route,
   type ScheduleStop,
-  type SavedUser,
   type Stop,
 } from './src/api';
 
@@ -53,15 +50,12 @@ function AppContent() {
   const [loadingSchedules, setLoadingSchedules] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [liveTimetable, setLiveTimetable] = useState(true);
-  const [savedUser, setSavedUser] = useState<SavedUser | null>(null);
   const [activeTab, setActiveTab] = useState<AppTab>('timetable');
   const [activePicker, setActivePicker] = useState<PickerType | null>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [clock, setClock] = useState(() => new Date());
   const insets = useSafeAreaInsets();
 
-  const { login, getToken, account, logout } = useAuth();
-  const hasSavedUser = useRef(false);
   const now = clock;
   const currentDayName = [
     'Sunday',
@@ -140,31 +134,6 @@ function AppContent() {
   useEffect(() => {
     if (liveTimetable) setSelectedDay('');
   }, [liveTimetable]);
-
-  useEffect(() => {
-    const saveUserToBackendAsync = async () => {
-      if (!account || hasSavedUser.current) return;
-      hasSavedUser.current = true;
-
-      try {
-        const tokenResponse = await getToken();
-        const oid = account.idTokenClaims?.oid || account.localAccountId;
-        const payload = {
-          Name: account.name || account.username || 'User',
-          Email: account.username || account.idTokenClaims?.preferred_username || '',
-          AzureOID: oid,
-        };
-
-        const user = await saveUserToBackend(payload, tokenResponse.accessToken);
-        setSavedUser(user);
-      } catch (err) {
-        console.error('Backend login save failed:', err);
-        setError('Failed to save signed-in user.');
-      }
-    };
-
-    saveUserToBackendAsync();
-  }, [account]);
 
   useEffect(() => {
     const loadRegions = async () => {
@@ -288,16 +257,6 @@ function AppContent() {
     if (diff > 0) return diff < 60 ? `${diff}m` : `${Math.floor(diff / 60)}h ${diff % 60}m`;
     return '';
   };
-
-  const headerUser = useMemo(() => {
-    if (!account) return null;
-
-    return {
-      name: account.name || account.username || 'User',
-      email: account.username || account.idTokenClaims?.preferred_username || '',
-      initials: (account.name || account.username || 'U')[0].toUpperCase(),
-    };
-  }, [account]);
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -448,30 +407,8 @@ function AppContent() {
 
         {activeTab === 'account' ? (
           <View style={styles.contentCard}>
-            <Text style={styles.heading}>Your account</Text>
-            <Text style={styles.subheading}>Sign in to keep your AT Hop account details together.</Text>
-            {account ? (
-              <View style={styles.accountCard}>
-                <View style={styles.userCard}>
-                  <View style={styles.avatar}><Text style={styles.avatarText}>{headerUser?.initials}</Text></View>
-                  <View style={styles.userMeta}>
-                    <Text style={styles.userName}>{headerUser?.name}</Text>
-                    <Text style={styles.userEmail}>{headerUser?.email}</Text>
-                  </View>
-                </View>
-                <View style={styles.pointsBadge}><Text style={styles.pointsText}>{savedUser?.TotalPoints ?? 0} pts</Text></View>
-                <Pressable accessibilityRole="button" style={styles.buttonSecondary} onPress={logout}>
-                  <Text style={styles.buttonSecondaryText}>Sign out</Text>
-                </Pressable>
-              </View>
-            ) : (
-              <View style={styles.accountPrompt}>
-                <Text style={styles.accountPromptText}>Sign in to see your account and points.</Text>
-                <Pressable accessibilityRole="button" style={styles.buttonPrimary} onPress={login}>
-                  <Text style={styles.buttonPrimaryText}>Sign in</Text>
-                </Pressable>
-              </View>
-            )}
+            <Text style={styles.heading}>Account</Text>
+            <Text style={styles.subheading}>Sign-in and account features are not available yet.</Text>
           </View>
         ) : null}
       </ScrollView>
@@ -684,20 +621,6 @@ const styles = StyleSheet.create({
   routeLoader: {
     marginVertical: 28,
   },
-  accountCard: {
-    alignItems: 'flex-start',
-    gap: 16,
-    marginTop: 28,
-  },
-  accountPrompt: {
-    alignItems: 'flex-start',
-    gap: 16,
-    marginTop: 28,
-  },
-  accountPromptText: {
-    color: '#475569',
-    fontSize: 14,
-  },
   modalRoot: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -901,75 +824,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     gap: 12,
     marginBottom: 16,
-  },
-  userCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f1f5f9',
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    maxWidth: 220,
-  },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#2563eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  avatarText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  userMeta: {
-    flexShrink: 1,
-  },
-  userName: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#1e293b',
-  },
-  userEmail: {
-    fontSize: 11,
-    color: '#64748b',
-  },
-  pointsBadge: {
-    backgroundColor: '#fef3c7',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 999,
-  },
-  pointsText: {
-    color: '#92400e',
-    fontWeight: '700',
-    fontSize: 13,
-  },
-  buttonPrimary: {
-    backgroundColor: '#2563eb',
-    borderRadius: 999,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-  },
-  buttonPrimaryText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 13,
-  },
-  buttonSecondary: {
-    borderWidth: 1,
-    borderColor: '#2563eb',
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-  buttonSecondaryText: {
-    color: '#2563eb',
-    fontWeight: '700',
-    fontSize: 13,
   },
   errorText: {
     color: '#dc2626',

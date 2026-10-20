@@ -10,14 +10,6 @@ export type ScheduleStop = {
   Code: string;
   Times: string[];
 };
-export type SavedUser = {
-  UserId?: string;
-  Name?: string;
-  Email?: string;
-  TotalPoints?: number;
-  AzureOID?: string;
-};
-
 export const dayMap: Record<string, string> = {
   Monday: 'WEEKDAY',
   Tuesday: 'WEEKDAY',
@@ -44,26 +36,6 @@ export async function fetchMedia(): Promise<any[]> {
   const response = await fetch(`${API_BASE}/media`);
   if (!response.ok) throw new Error('Failed to fetch media');
   return response.json();
-}
-
-export async function saveUserToBackend(payload: Record<string, string | undefined>, token: string): Promise<SavedUser> {
-  const response = await fetch(`${API_BASE}/user/login`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
-
-  const text = await response.text();
-  const data = text ? JSON.parse(text) : null;
-
-  if (!response.ok) {
-    throw new Error(data?.message || `Login API failed with status ${response.status}`);
-  }
-
-  return data;
 }
 
 export async function fetchTimetables(routeId: string, serviceType: string): Promise<any> {
