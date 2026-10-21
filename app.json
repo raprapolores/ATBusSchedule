@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "ReactATBusNative",
-    "slug": "ReactATBusNative",
-    "version": "1.0.0",
+    "name": "Auckland Bus Timetable",
+    "slug": "AucklandBusTimetable",
+    "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/playstore.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true
@@ -17,7 +17,8 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.ralpholores.reactatbusnative"
+      "package": "com.ralpholores.reactatbusnative",
+      "versionCode": 2
     },
     "web": {
       "favicon": "./assets/favicon.png"
