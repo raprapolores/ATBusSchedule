@@ -17,8 +17,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.ralpholores.reactatbusnative",
-      "versionCode": 2
+      "package": "com.ralpholores.reactatbusnative"
     },
     "web": {
       "favicon": "./assets/favicon.png"
