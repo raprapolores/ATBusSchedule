@@ -1,0 +1,57 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  nodeVersion: '22.x'
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '$(nodeVersion)'
+  displayName: 'Use Node.js $(nodeVersion)'
+
+- script: npm ci
+  workingDirectory: '$(Build.SourcesDirectory)'
+  displayName: 'Install dependencies'
+
+- task: JavaToolInstaller@0
+  inputs:
+    versionSpec: '17'
+    jdkArchitectureOption: 'x64'
+    jdkSourceOption: 'PreInstalled'
+  displayName: 'Use Java 17'
+
+- script: npm run build
+  displayName: 'Export web app'
+
+- script: npx expo prebuild --platform android --no-install
+  displayName: 'Generate Android project'
+
+- script: chmod +x gradlew && ./gradlew assembleDebug
+  workingDirectory: '$(Build.SourcesDirectory)/android'
+  displayName: 'Build Android debug APK'
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(Build.SourcesDirectory)/dist'
+    includeRootFolder: false
+    archiveType: zip
+    archiveFile: '$(Build.ArtifactStagingDirectory)/app-web.zip'
+
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)/android/app/build/outputs/apk/debug'
+    Contents: 'app-debug.apk'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+  displayName: 'Stage Android APK'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
