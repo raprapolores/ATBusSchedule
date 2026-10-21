@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "ReactATBusNative",
-    "slug": "ReactATBusNative",
-    "version": "1.0.0",
+    "name": "Auckland Bus Timetable",
+    "slug": "AucklandBusTimetable",
+    "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/playstore.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true
