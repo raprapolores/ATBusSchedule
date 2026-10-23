@@ -1,3 +1,5 @@
+import { fetchRegionsWithRetry } from './services/regionApi';
+
 export const API_BASE = 'https://athop-app-efevdvbgbnazdyeg.canadacentral-01.azurewebsites.net/api';
 
 export type Region = { RegionId: string; Name: string };
@@ -21,9 +23,7 @@ export const dayMap: Record<string, string> = {
 };
 
 export async function fetchRegions(): Promise<Region[]> {
-  const response = await fetch(`${API_BASE}/regions`);
-  if (!response.ok) throw new Error('Failed to fetch regions');
-  return response.json();
+  return fetchRegionsWithRetry<Region[]>(`${API_BASE}/regions`);
 }
 
 export async function fetchRoutes(regionId: string): Promise<Route[]> {

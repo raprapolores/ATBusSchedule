@@ -138,18 +138,19 @@ export default function TimetableScreen({ navigation }: Props) {
   useEffect(() => {
     const loadRegions = async () => {
       try {
+        setError(null);
         setLoadingRegions(true);
         const data = await fetchRegions();
         setRegions(data);
-        console.log("DATA+ " + JSON.stringify(data));
-      } catch {
+      } catch (loadError) {
+        console.error('Failed to load regions:', loadError);
         setError('Error loading regions');
       } finally {
         setLoadingRegions(false);
       }
     };
 
-    loadRegions();
+    void loadRegions();
   }, []);
 
   useEffect(() => {
@@ -164,7 +165,6 @@ export default function TimetableScreen({ navigation }: Props) {
         setLoadingRoutes(true);
         const data = await fetchRoutes(selectedRegionId);
         setRoutes(data);
-        console.log("ROUTES: " + JSON.stringify(data));
       } catch {
         setError('Error loading routes');
       } finally {
@@ -611,9 +611,10 @@ export default function TimetableScreen({ navigation }: Props) {
               {liveTimetable ? 'Live departures' : 'Scheduled departures'}
             </Text>
 
-            {loadingSchedules ? (
+            {loadingRegions || loadingSchedules ? (
               <View style={styles.loaderWrap}>
                 <ActivityIndicator size="large" color="#2563eb" />
+                {loadingRegions ? <Text style={styles.emptyState}>Waiting for timetable data…</Text> : null}
               </View>
             ) : !hasRoute ? (
               <Text style={styles.emptyState}>Please select a route</Text>
@@ -874,7 +875,6 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: '#D93025',
-    marginBottom: 12,
     fontSize: 13,
   },
   heroCard: {
