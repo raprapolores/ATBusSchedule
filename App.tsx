@@ -138,17 +138,19 @@ function AppContent() {
   useEffect(() => {
     const loadRegions = async () => {
       try {
+        setError(null);
         setLoadingRegions(true);
         const data = await fetchRegions();
         setRegions(data);
-      } catch {
+      } catch (loadError) {
+        console.error('Failed to load regions:', loadError);
         setError('Error loading regions');
       } finally {
         setLoadingRegions(false);
       }
     };
 
-    loadRegions();
+    void loadRegions();
   }, []);
 
   useEffect(() => {
@@ -244,6 +246,7 @@ function AppContent() {
   const rowsToDisplay = liveTimetable ? timetableRows.slice(0, MAX_UPCOMING_ROWS) : timetableRows;
   const hasRoute = !!selectedRouteId;
   const hasRows = rowsToDisplay.length > 0;
+  const regionsUnavailable = loadingRegions || regions.length === 0;
 
   const getTimeLabel = (time: string) => {
     if (!time) return '—';
@@ -292,6 +295,7 @@ function AppContent() {
                 <Switch
                   value={liveTimetable}
                   onValueChange={setLiveTimetable}
+                  disabled={regionsUnavailable}
                   trackColor={{ false: '#cbd5e1', true: '#2563eb' }}
                 />
               </View>
@@ -299,20 +303,25 @@ function AppContent() {
                 'region',
                 'Region',
                 loadingRegions ? 'Loading regions…' : regions.find((region) => region.RegionId === selectedRegionId)?.Name || 'Choose a region',
-                loadingRegions,
+                regionsUnavailable,
               )}
               {renderSelector(
                 'route',
                 'Route',
                 loadingRoutes ? 'Loading routes…' : routes.find((route) => route.RouteId === selectedRouteId)?.Name || 'Choose a route',
-                !selectedRegionId || loadingRoutes || routes.length === 0,
+                regionsUnavailable || !selectedRegionId || loadingRoutes || routes.length === 0,
               )}
-              {renderSelector('day', 'Day', selectedDay || `Today (${currentDayName})`, liveTimetable)}
+              {renderSelector(
+                'day',
+                'Day',
+                selectedDay || `Today (${currentDayName})`,
+                regionsUnavailable || liveTimetable,
+              )}
               {renderSelector(
                 'stop',
                 'Stop',
                 stops.find((stop) => stop.StopId === selectedStopId)?.Suburb || 'All stops',
-                !hasRoute || loadingSchedules || stops.length === 0,
+                regionsUnavailable || !hasRoute || loadingSchedules || stops.length === 0,
               )}
             </View>
 
@@ -320,8 +329,11 @@ function AppContent() {
               <Text style={styles.tableTitle}>
                 Upcoming departures · {liveTimetable ? 'Live' : selectedDay || 'Static'}
               </Text>
-              {loadingSchedules ? (
-                <View style={styles.loaderWrap}><ActivityIndicator size="large" color="#2563eb" /></View>
+              {loadingRegions || loadingSchedules ? (
+                <View style={styles.loaderWrap}>
+                  <ActivityIndicator size="large" color="#2563eb" />
+                  {loadingRegions ? <Text style={styles.emptyState}>Waiting for timetable data…</Text> : null}
+                </View>
               ) : !hasRoute ? (
                 <Text style={styles.emptyState}>Choose a region and route to see departures.</Text>
               ) : !hasRows ? (
@@ -370,7 +382,7 @@ function AppContent() {
                 'region',
                 'Region',
                 loadingRegions ? 'Loading regions…' : regions.find((region) => region.RegionId === selectedRegionId)?.Name || 'Choose a region',
-                loadingRegions,
+                regionsUnavailable,
               )}
             </View>
             {loadingRoutes ? (
@@ -435,7 +447,7 @@ function AppContent() {
       <Modal transparent animationType="slide" visible={!!activePicker} onRequestClose={() => setActivePicker(null)}>
         <View style={styles.modalRoot}>
           <Pressable accessibilityLabel="Close picker" style={styles.modalBackdrop} onPress={() => setActivePicker(null)} />
-          <View style={styles.sheet}>
+          <View style={[styles.sheet, { paddingBottom: Math.max(24, insets.bottom + 16) }]}>
             <View style={styles.sheetHandle} />
             <Text style={styles.sheetTitle}>{pickerTitle}</Text>
             <ScrollView>
@@ -827,7 +839,6 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: '#dc2626',
-    marginBottom: 12,
     fontSize: 13,
   },
   filtersGrid: {
