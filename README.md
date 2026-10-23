@@ -59,6 +59,10 @@ This project keeps the same endpoint patterns as the existing web app:
 - `GET /api/media`
 - `POST /api/user/login`
 
+## Privacy
+
+Read the [AT Hop privacy policy](https://raprapolores.github.io/ATBusSchedule/PRIVACY_POLICY.md).
+
 ## Environment
 
 This project is intended to be used as a standalone repository. The app still uses the same runtime API base URL as the legacy frontend.
