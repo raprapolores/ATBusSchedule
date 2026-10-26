@@ -10,6 +10,7 @@ import {
   Switch,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -25,6 +26,14 @@ import {
 
 const MAX_UPCOMING_ROWS = 5;
 const CLOCK_REFRESH_INTERVAL_MS = 1_000;
+const STOP_HEADER_COLORS = [
+  { background: '#dbeafe', border: '#93c5fd', text: '#1e40af' },
+  { background: '#dcfce7', border: '#86efac', text: '#166534' },
+  { background: '#fef3c7', border: '#fcd34d', text: '#92400e' },
+  { background: '#f3e8ff', border: '#d8b4fe', text: '#6b21a8' },
+  { background: '#ffedd5', border: '#fdba74', text: '#9a3412' },
+  { background: '#ccfbf1', border: '#5eead4', text: '#115e59' },
+];
 type AppTab = 'timetable' | 'routes' | 'account';
 type PickerType = 'region' | 'route' | 'day' | 'stop';
 
@@ -55,6 +64,8 @@ function AppContent() {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [clock, setClock] = useState(() => new Date());
   const insets = useSafeAreaInsets();
+  const { width: windowWidth } = useWindowDimensions();
+  const isMobileLayout = windowWidth < 640;
 
   const now = clock;
   const currentDayName = [
@@ -332,25 +343,74 @@ function AppContent() {
                 <Text style={styles.emptyState}>Choose a region and route to see departures.</Text>
               ) : !hasRows ? (
                 <Text style={styles.emptyState}>No more upcoming departures.</Text>
+              ) : isMobileLayout ? (
+                <View style={styles.mobileStopsList}>
+                  {filteredStops.map((stop, stopIndex) => {
+                    const colors = STOP_HEADER_COLORS[stopIndex % STOP_HEADER_COLORS.length];
+                    const stopTimes = rowsToDisplay
+                      .map((row) => row[stopIndex])
+                      .filter((time): time is string => !!time);
+
+                    return (
+                      <View key={stop.StopId} style={styles.mobileStopCard}>
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityState={{ selected: selectedStopId === stop.StopId }}
+                          onPress={() => setSelectedStopId(selectedStopId === stop.StopId ? '' : stop.StopId)}
+                          style={[
+                            styles.mobileStopHeader,
+                            { backgroundColor: colors.background, borderColor: colors.border },
+                          ]}
+                        >
+                          <View style={styles.mobileStopTitleWrap}>
+                            <Text style={[styles.mobileStopName, { color: colors.text }]}>{stop.Suburb}</Text>
+                            {stop.Code ? <Text style={[styles.mobileStopCode, { color: colors.text }]}>{stop.Code}</Text> : null}
+                          </View>
+                          <Feather
+                            name={selectedStopId === stop.StopId ? 'check-circle' : 'chevron-right'}
+                            size={18}
+                            color={colors.text}
+                          />
+                        </Pressable>
+                        {stopTimes.length > 0 ? (
+                          <View style={styles.mobileTimesGrid}>
+                            {stopTimes.map((time, timeIndex) => (
+                              <View key={`${stop.StopId}-${time}-${timeIndex}`} style={styles.mobileTimeChip}>
+                                <Text style={styles.mobileTimeText}>{time}</Text>
+                                {liveTimetable ? <Text style={styles.mobileRelativeTime}>{getTimeLabel(time)}</Text> : null}
+                              </View>
+                            ))}
+                          </View>
+                        ) : (
+                          <Text style={styles.mobileNoDepartures}>No upcoming departures</Text>
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
               ) : (
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <View style={[styles.tableContainer, { width: tableWidth }]}>
                     <View style={styles.tableHeaderRow}>
-                      {filteredStops.map((stop) => (
-                        <Pressable
-                          key={stop.StopId}
-                          accessibilityRole="button"
-                          onPress={() => setSelectedStopId(selectedStopId === stop.StopId ? '' : stop.StopId)}
-                          style={[
-                            styles.tableHeaderCell,
-                            { width: tableColumnWidth },
-                            selectedStopId === stop.StopId && styles.tableHeaderCellSelected,
-                          ]}
-                        >
-                          <Text style={styles.headerStopName}>{stop.Suburb}</Text>
-                          {stop.Code ? <Text style={styles.headerCode}>{stop.Code}</Text> : null}
-                        </Pressable>
-                      ))}
+                      {filteredStops.map((stop, stopIndex) => {
+                        const colors = STOP_HEADER_COLORS[stopIndex % STOP_HEADER_COLORS.length];
+                        return (
+                          <Pressable
+                            key={stop.StopId}
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: selectedStopId === stop.StopId }}
+                            onPress={() => setSelectedStopId(selectedStopId === stop.StopId ? '' : stop.StopId)}
+                            style={[
+                              styles.tableHeaderCell,
+                              { width: tableColumnWidth, backgroundColor: colors.background, borderColor: colors.border },
+                              selectedStopId === stop.StopId && styles.tableHeaderCellSelected,
+                            ]}
+                          >
+                            <Text style={[styles.headerStopName, { color: colors.text }]}>{stop.Suburb}</Text>
+                            {stop.Code ? <Text style={[styles.headerCode, { color: colors.text }]}>{stop.Code}</Text> : null}
+                          </Pressable>
+                        );
+                      })}
                     </View>
                     {rowsToDisplay.map((row, rowIndex) => (
                       <View key={`row-${rowIndex}`} style={styles.tableRow}>
@@ -887,6 +947,71 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 12,
   },
+  mobileStopsList: {
+    gap: 12,
+    paddingBottom: 10,
+  },
+  mobileStopCard: {
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 14,
+    backgroundColor: '#fff',
+  },
+  mobileStopHeader: {
+    minHeight: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+  },
+  mobileStopTitleWrap: {
+    flex: 1,
+  },
+  mobileStopName: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  mobileStopCode: {
+    marginTop: 2,
+    fontSize: 11,
+    opacity: 0.8,
+  },
+  mobileTimesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    padding: 12,
+  },
+  mobileTimeChip: {
+    minWidth: 78,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#f1f5f9',
+  },
+  mobileTimeText: {
+    color: '#1e293b',
+    fontSize: 14,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+  },
+  mobileRelativeTime: {
+    marginTop: 2,
+    color: '#64748b',
+    fontSize: 11,
+  },
+  mobileNoDepartures: {
+    paddingHorizontal: 14,
+    paddingVertical: 16,
+    color: '#64748b',
+    fontSize: 13,
+  },
   loaderWrap: {
     paddingVertical: 32,
     alignItems: 'center',
@@ -919,7 +1044,7 @@ const styles = StyleSheet.create({
   },
   tableHeaderCellSelected: {
     borderColor: '#60a5fa',
-    backgroundColor: '#eff6ff',
+    borderWidth: 2,
   },
   headerStopName: {
     fontSize: 12,
