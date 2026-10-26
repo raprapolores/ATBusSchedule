@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Feather } from '@expo/vector-icons';
+import { StatusBar } from 'expo-status-bar';
 import {
   ActivityIndicator,
   Modal,
   Pressable,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Switch,
   Text,
@@ -244,6 +244,8 @@ function AppContent() {
   }
 
   const rowsToDisplay = liveTimetable ? timetableRows.slice(0, MAX_UPCOMING_ROWS) : timetableRows;
+  const tableColumnWidth = Math.max(650 / Math.max(filteredStops.length, 1), 110);
+  const tableWidth = filteredStops.length * tableColumnWidth + Math.max(filteredStops.length - 1, 0) * 6;
   const hasRoute = !!selectedRouteId;
   const hasRows = rowsToDisplay.length > 0;
   const regionsUnavailable = loadingRegions || regions.length === 0;
@@ -263,18 +265,10 @@ function AppContent() {
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <StatusBar style="dark" />
       <View style={styles.appHeader}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Open navigation menu"
-          onPress={() => setDrawerVisible(true)}
-          style={styles.menuButton}
-        >
-          <Text style={styles.menuIcon}>☰</Text>
-        </Pressable>
         <View style={styles.headerTitleWrap}>
-          <Text style={styles.appName}>AT Hop</Text>
+          <Text style={styles.appName}>Auckland Bus</Text>
           <Text style={styles.headerSubtitle}>{tabTitle}</Text>
         </View>
         <Text style={[styles.liveBadge, liveTimetable ? styles.liveBadgeActive : styles.liveBadgeInactive]}>
@@ -340,14 +334,18 @@ function AppContent() {
                 <Text style={styles.emptyState}>No more upcoming departures.</Text>
               ) : (
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  <View style={styles.tableContainer}>
+                  <View style={[styles.tableContainer, { width: tableWidth }]}>
                     <View style={styles.tableHeaderRow}>
                       {filteredStops.map((stop) => (
                         <Pressable
                           key={stop.StopId}
                           accessibilityRole="button"
                           onPress={() => setSelectedStopId(selectedStopId === stop.StopId ? '' : stop.StopId)}
-                          style={[styles.tableHeaderCell, selectedStopId === stop.StopId && styles.tableHeaderCellSelected]}
+                          style={[
+                            styles.tableHeaderCell,
+                            { width: tableColumnWidth },
+                            selectedStopId === stop.StopId && styles.tableHeaderCellSelected,
+                          ]}
                         >
                           <Text style={styles.headerStopName}>{stop.Suburb}</Text>
                           {stop.Code ? <Text style={styles.headerCode}>{stop.Code}</Text> : null}
@@ -357,7 +355,7 @@ function AppContent() {
                     {rowsToDisplay.map((row, rowIndex) => (
                       <View key={`row-${rowIndex}`} style={styles.tableRow}>
                         {row.map((time, index) => (
-                          <View key={`${rowIndex}-${index}`} style={styles.tableCell}>
+                          <View key={`${rowIndex}-${index}`} style={[styles.tableCell, { width: tableColumnWidth }]}>
                             <Text style={styles.timeText}>{time || '—'}</Text>
                             {liveTimetable && time
                               ? <Text style={styles.relativeTime}>{getTimeLabel(time)}</Text>
@@ -472,33 +470,6 @@ function AppContent() {
                 );
               })}
             </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal transparent animationType="fade" visible={drawerVisible} onRequestClose={() => setDrawerVisible(false)}>
-        <View style={[styles.drawerRoot, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-          <Pressable accessibilityLabel="Close navigation menu" style={styles.drawerBackdrop} onPress={() => setDrawerVisible(false)} />
-          <View style={styles.drawer}>
-            <Text style={styles.drawerBrand}>AT Hop</Text>
-            <Text style={styles.drawerCaption}>Your journey, made easier</Text>
-            {([
-              { key: 'timetable', label: 'Timetable' },
-              { key: 'routes', label: 'Browse routes' },
-              { key: 'account', label: 'Account' },
-            ] as const).map((tab) => (
-              <Pressable
-                key={tab.key}
-                accessibilityRole="button"
-                onPress={() => {
-                  setActiveTab(tab.key);
-                  setDrawerVisible(false);
-                }}
-                style={[styles.drawerItem, activeTab === tab.key && styles.drawerItemActive]}
-              >
-                <Text style={[styles.drawerItemText, activeTab === tab.key && styles.tabActive]}>{tab.label}</Text>
-              </Pressable>
-            ))}
           </View>
         </View>
       </Modal>
@@ -932,10 +903,11 @@ const styles = StyleSheet.create({
   },
   tableHeaderRow: {
     flexDirection: 'row',
+    gap: 6,
     marginBottom: 8,
   },
   tableHeaderCell: {
-    flex: 1,
+    flexShrink: 0,
     paddingVertical: 10,
     paddingHorizontal: 6,
     alignItems: 'center',
@@ -944,7 +916,6 @@ const styles = StyleSheet.create({
     borderColor: '#e2e8f0',
     borderRadius: 12,
     backgroundColor: '#fff',
-    marginRight: 6,
   },
   tableHeaderCellSelected: {
     borderColor: '#60a5fa',
@@ -964,16 +935,16 @@ const styles = StyleSheet.create({
   },
   tableRow: {
     flexDirection: 'row',
+    gap: 6,
     marginBottom: 8,
   },
   tableCell: {
-    flex: 1,
+    flexShrink: 0,
     minHeight: 52,
     backgroundColor: '#fff',
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 6,
-    marginRight: 6,
     alignItems: 'center',
     justifyContent: 'center',
   },
