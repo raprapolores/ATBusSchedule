@@ -23,7 +23,13 @@
     },
     "plugins": [
       "expo-status-bar",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow Auckland Bus to use your location to show directions to a bus stop."
+        }
+      ]
     ]
   }
 }

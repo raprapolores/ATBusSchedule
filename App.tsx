@@ -1,11 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Feather } from '@expo/vector-icons';
+import * as Location from 'expo-location';
 import { StatusBar } from 'expo-status-bar';
 import {
   Animated,
   ActivityIndicator,
+  Alert,
   Easing,
   Image,
+  Linking,
   Modal,
   Pressable,
   ScrollView,
@@ -114,6 +117,7 @@ function AppContent() {
   const [activeTab, setActiveTab] = useState<AppTab>('routes');
   const [activePicker, setActivePicker] = useState<PickerType | null>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
+  const [locatingStopId, setLocatingStopId] = useState<string | null>(null);
   const [clock, setClock] = useState(() => new Date());
   const insets = useSafeAreaInsets();
   const { width: windowWidth } = useWindowDimensions();
@@ -194,6 +198,39 @@ function AppContent() {
       </Pressable>
     </View>
   );
+
+  const showStopDirections = async (stop: Stop) => {
+    if (locatingStopId) return;
+    setLocatingStopId(stop.StopId);
+    try {
+      const permission = await Location.requestForegroundPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert(
+          'Location permission needed',
+          'Allow location access to get walking directions from your current location to this stop.',
+        );
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      const origin = `${location.coords.latitude},${location.coords.longitude}`;
+      const destination = `bus stop ${stop.Suburb}, Auckland, New Zealand`;
+      const mapUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(
+        origin,
+      )}&destination=${encodeURIComponent(destination)}&travelmode=walking`;
+      await Linking.openURL(mapUrl);
+    } catch (openError) {
+      console.error(`Failed to get directions to stop "${stop.Suburb}":`, openError);
+      Alert.alert(
+        'Unable to get directions',
+        'Check that location services are enabled and a browser or maps app is available, then try again.',
+      );
+    } finally {
+      setLocatingStopId(null);
+    }
+  };
 
   useEffect(() => {
     if (liveTimetable) setSelectedDay('');
@@ -404,10 +441,7 @@ function AppContent() {
 
                     return (
                       <View key={stop.StopId} style={styles.mobileStopCard}>
-                        <Pressable
-                          accessibilityRole="button"
-                          accessibilityState={{ selected: selectedStopId === stop.StopId }}
-                          onPress={() => setSelectedStopId(selectedStopId === stop.StopId ? '' : stop.StopId)}
+                        <View
                           style={[
                             styles.mobileStopHeader,
                             {
@@ -416,22 +450,43 @@ function AppContent() {
                             },
                           ]}
                         >
-                          <View style={styles.mobileStopTitleWrap}>
-                            <Text style={[styles.mobileStopName, selectedStopId === stop.StopId && styles.mobileStopSelectedText]}>
-                              {stop.Suburb}
-                            </Text>
-                            {stop.Code ? (
-                              <Text style={[styles.mobileStopCode, selectedStopId === stop.StopId && styles.mobileStopSelectedText]}>
-                                {stop.Code}
+                          <Pressable
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: selectedStopId === stop.StopId }}
+                            onPress={() => setSelectedStopId(selectedStopId === stop.StopId ? '' : stop.StopId)}
+                            style={styles.mobileStopSelect}
+                          >
+                            <View style={styles.mobileStopTitleWrap}>
+                              <Text style={[styles.mobileStopName, selectedStopId === stop.StopId && styles.mobileStopSelectedText]}>
+                                {stop.Suburb}
                               </Text>
-                            ) : null}
-                          </View>
-                          <Feather
-                            name={selectedStopId === stop.StopId ? 'check-circle' : 'chevron-right'}
-                            size={18}
-                            color={selectedStopId === stop.StopId ? theme.surface : theme.navy}
-                          />
-                        </Pressable>
+                              {stop.Code ? (
+                                <Text style={[styles.mobileStopCode, selectedStopId === stop.StopId && styles.mobileStopSelectedText]}>
+                                  {stop.Code}
+                                </Text>
+                              ) : null}
+                            </View>
+                            <Feather
+                              name={selectedStopId === stop.StopId ? 'check-circle' : 'chevron-right'}
+                              size={18}
+                              color={selectedStopId === stop.StopId ? theme.surface : theme.navy}
+                            />
+                          </Pressable>
+                          <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel={`Get directions to ${stop.Suburb}`}
+                            accessibilityState={{ disabled: locatingStopId !== null }}
+                            disabled={locatingStopId !== null}
+                            onPress={() => { void showStopDirections(stop); }}
+                            style={styles.stopLocationButton}
+                          >
+                            {locatingStopId === stop.StopId ? (
+                              <ActivityIndicator size="small" color={selectedStopId === stop.StopId ? theme.surface : theme.navy} />
+                            ) : (
+                              <Feather name="map-pin" size={18} color={selectedStopId === stop.StopId ? theme.surface : theme.navy} />
+                            )}
+                          </Pressable>
+                        </View>
                         {stopTimes.length > 0 ? (
                           <View style={styles.mobileTimesGrid}>
                             {stopTimes.map((time, timeIndex) => (
@@ -453,37 +508,50 @@ function AppContent() {
                   <View style={[styles.tableContainer, { width: tableWidth }]}>
                     <View style={styles.tableHeaderRow}>
                       {filteredStops.map((stop) => {
+                        const isSelectedStop = selectedStopId === stop.StopId;
                         return (
-                          <Pressable
+                          <View
                             key={stop.StopId}
-                            accessibilityRole="button"
-                            accessibilityState={{ selected: selectedStopId === stop.StopId }}
-                            onPress={() => setSelectedStopId(selectedStopId === stop.StopId ? '' : stop.StopId)}
                             style={[
                               styles.tableHeaderCell,
                               {
                                 width: tableColumnWidth,
-                                backgroundColor: selectedStopId === stop.StopId ? theme.navy : theme.surfaceMuted,
-                                borderColor: selectedStopId === stop.StopId ? theme.navyDark : theme.border,
+                                backgroundColor: isSelectedStop ? theme.navy : theme.surfaceMuted,
+                                borderColor: isSelectedStop ? theme.navyDark : theme.border,
                               },
-                              selectedStopId === stop.StopId && styles.tableHeaderCellSelected,
+                              isSelectedStop && styles.tableHeaderCellSelected,
                             ]}
                           >
-                            <Text style={[
-                              styles.headerStopName,
-                              selectedStopId === stop.StopId && styles.tableHeaderSelectedText,
-                            ]}>
-                              {stop.Suburb}
-                            </Text>
-                            {stop.Code ? (
-                              <Text style={[
-                                styles.headerCode,
-                                selectedStopId === stop.StopId && styles.tableHeaderSelectedText,
-                              ]}>
-                                {stop.Code}
+                            <Pressable
+                              accessibilityRole="button"
+                              accessibilityState={{ selected: isSelectedStop }}
+                              onPress={() => setSelectedStopId(isSelectedStop ? '' : stop.StopId)}
+                              style={styles.tableStopSelect}
+                            >
+                              <Text style={[styles.headerStopName, isSelectedStop && styles.tableHeaderSelectedText]}>
+                                {stop.Suburb}
                               </Text>
-                            ) : null}
-                          </Pressable>
+                              {stop.Code ? (
+                                <Text style={[styles.headerCode, isSelectedStop && styles.tableHeaderSelectedText]}>
+                                  {stop.Code}
+                                </Text>
+                              ) : null}
+                            </Pressable>
+                            <Pressable
+                              accessibilityRole="button"
+                              accessibilityLabel={`Get directions to ${stop.Suburb}`}
+                              accessibilityState={{ disabled: locatingStopId !== null }}
+                              disabled={locatingStopId !== null}
+                              onPress={() => { void showStopDirections(stop); }}
+                              style={styles.stopLocationButton}
+                            >
+                              {locatingStopId === stop.StopId ? (
+                                <ActivityIndicator size="small" color={isSelectedStop ? theme.surface : theme.navy} />
+                              ) : (
+                                <Feather name="map-pin" size={16} color={isSelectedStop ? theme.surface : theme.navy} />
+                              )}
+                            </Pressable>
+                          </View>
                         );
                       })}
                     </View>
@@ -1085,11 +1153,25 @@ const styles = StyleSheet.create({
     minHeight: 56,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     gap: 8,
-    paddingHorizontal: 14,
+    paddingHorizontal: 10,
     paddingVertical: 10,
     borderBottomWidth: 1,
+  },
+  mobileStopSelect: {
+    flex: 1,
+    minHeight: 36,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  stopLocationButton: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
   },
   mobileStopTitleWrap: {
     flex: 1,
@@ -1159,11 +1241,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   tableHeaderCell: {
+    flexDirection: 'row',
     flexShrink: 0,
-    paddingVertical: 10,
-    paddingHorizontal: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 4,
     alignItems: 'center',
-    justifyContent: 'center',
     borderWidth: 1,
     borderColor: theme.border,
     borderRadius: 12,
@@ -1172,6 +1254,13 @@ const styles = StyleSheet.create({
   tableHeaderCellSelected: {
     borderColor: theme.navyDark,
     borderWidth: 2,
+  },
+  tableStopSelect: {
+    flex: 1,
+    minHeight: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 2,
   },
   tableHeaderSelectedText: {
     color: theme.surface,
