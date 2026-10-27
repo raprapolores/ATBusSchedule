@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Feather } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import {
+  Animated,
   ActivityIndicator,
+  Easing,
+  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -49,6 +52,51 @@ export default function App() {
   );
 }
 
+function StartupSplash() {
+  const { width } = useWindowDimensions();
+  const progress = useRef(new Animated.Value(0)).current;
+  const trackWidth = Math.min(width - 80, 320);
+  const segmentWidth = trackWidth * 0.36;
+  const translateX = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-segmentWidth, trackWidth],
+  });
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.timing(progress, {
+        toValue: 1,
+        duration: 1400,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+    );
+    animation.start();
+
+    return () => animation.stop();
+  }, [progress]);
+
+  return (
+    <View style={styles.startupContent}>
+      <Image source={require('./assets/playstore.png')} style={styles.startupLogo} />
+      <Text style={styles.startupTitle}>Auckland Bus</Text>
+      <Text style={styles.startupMessage}>Loading regions…</Text>
+      <View
+        accessibilityRole="progressbar"
+        accessibilityLabel="Loading regions"
+        style={[styles.startupProgressTrack, { width: trackWidth }]}
+      >
+        <Animated.View
+          style={[
+            styles.startupProgressSegment,
+            { width: segmentWidth, transform: [{ translateX }] },
+          ]}
+        />
+      </View>
+    </View>
+  );
+}
+
 function AppContent() {
   const [regions, setRegions] = useState<Region[]>([]);
   const [routes, setRoutes] = useState<Route[]>([]);
@@ -58,7 +106,7 @@ function AppContent() {
   const [selectedRouteId, setSelectedRouteId] = useState<string>('');
   const [selectedStopId, setSelectedStopId] = useState<string>('');
   const [selectedDay, setSelectedDay] = useState<string>('');
-  const [loadingRegions, setLoadingRegions] = useState(false);
+  const [loadingRegions, setLoadingRegions] = useState(true);
   const [loadingRoutes, setLoadingRoutes] = useState(false);
   const [loadingSchedules, setLoadingSchedules] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -278,6 +326,15 @@ function AppContent() {
     if (diff > 0) return diff < 60 ? `${diff}m` : `${Math.floor(diff / 60)}h ${diff % 60}m`;
     return '';
   };
+
+  if (loadingRegions) {
+    return (
+      <SafeAreaView style={styles.startupSplash}>
+        <StatusBar style="light" />
+        <StartupSplash />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -557,6 +614,44 @@ function AppContent() {
 }
 
 const styles = StyleSheet.create({
+  startupSplash: {
+    flex: 1,
+    backgroundColor: theme.navyDark,
+  },
+  startupContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  startupLogo: {
+    width: 144,
+    height: 144,
+    marginBottom: 24,
+    borderRadius: 28,
+  },
+  startupTitle: {
+    color: theme.surface,
+    fontSize: 24,
+    fontWeight: '800',
+  },
+  startupMessage: {
+    marginTop: 8,
+    color: 'rgba(255, 255, 255, 0.75)',
+    fontSize: 14,
+  },
+  startupProgressTrack: {
+    height: 6,
+    marginTop: 28,
+    overflow: 'hidden',
+    borderRadius: 999,
+    backgroundColor: 'rgba(255, 255, 255, 0.24)',
+  },
+  startupProgressSegment: {
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: theme.surface,
+  },
   appHeader: {
     minHeight: 66,
     paddingHorizontal: 16,
